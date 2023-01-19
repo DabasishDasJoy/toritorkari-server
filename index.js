@@ -1,5 +1,5 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -96,11 +96,22 @@ async function run() {
      * Filter all the products having the same category name
      * Return the result
      */
-    app.get("/category/:name", async (req, res) => {
-      const name = req.params.name;
+    // app.get("/category/:name", async (req, res) => {
+    //   const name = req.params.name;
 
+    //   // Flter query
+    //   const query = { category: name };
+    //   const result = await productsCollection.find(query).toArray();
+
+    //   res.json(result);
+    // });
+    app.get("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const categoryQuery = { _id: ObjectId(id) };
+      const category = await categoriesCollections.findOne(categoryQuery);
+      const { categoryName } = category;
       // Flter query
-      const query = { category: name };
+      const query = { category: categoryName };
       const result = await productsCollection.find(query).toArray();
 
       res.json(result);
