@@ -40,9 +40,13 @@ async function run() {
     // Database
     const db = client.db("ToriTorkari");
 
-    // Collections
-    const usersCollections = db.collection("Users");
+    /* ******* Collections **************** */
+    const usersCollections = db.collection("users");
+    const categoriesCollections = db.collection("categories");
+    const productsCollection = db.collection("products");
 
+    /* ************** APIs ********************* */
+    /* ================Crete User================== */
     // Create user
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -51,22 +55,75 @@ async function run() {
 
       res.json(result);
     });
+    // Create user end
 
-    // Get JWT token
+    /* ===============Get JWt=================== */
+
+    /***************
+     * Get JWT token for user
+     * Find the logged in user in Database in every login
+     * Then provide JWT token
+     ****************/
+
     app.get("/jwt", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
 
       const user = await usersCollections.findOne(query);
       if (user) {
-        const token = jwt.sign({ user }, process.env.JWT_TOKEN, {
+        const token = jwt.sign({ user }, process.env.JWT_token, {
           expiresIn: "1d",
         });
         return res.json({ message: "success", token: token });
-      } else {
-        return res.status(403).json("Unauthorized Access");
       }
+      return res.status(403).json("Unauthorized Access");
     });
+
+    /* ===============Categories=================== */
+    /***********************************************
+     *  Get All the Categories which is a public route
+     * Should not very jwt token in public routes
+     * ********************************************/
+
+    app.get("/categories", async (req, res) => {
+      const categories = await categoriesCollections.find().toArray();
+
+      res.json(categories);
+    });
+    /* ==============Get Products from specic Category==================== */
+    /**
+     * Get the category id
+     * Filter all the products having the same category name
+     * Return the result
+     */
+    app.get("/category/:name", async (req, res) => {
+      const name = req.params.name;
+
+      // Flter query
+      const query = { category: name };
+      const result = await productsCollection.find(query).toArray();
+
+      res.json(result);
+    });
+
+    /* ================================== */
+
+    /* ================================== */
+
+    /* ================================== */
+
+    /* ================================== */
+
+    /* ================================== */
+
+    /* ================================== */
+
+    /* ================================== */
+
+    /* ================================== */
+
+    /* ================================== */
+    /* ************** APIs ********************* */
   } finally {
   }
 }
