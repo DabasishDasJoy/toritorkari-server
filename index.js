@@ -146,6 +146,7 @@ async function run() {
     /**
      * Find the review
      * If review exist set the updated data
+     * Verify review email with request email also for extra safety
      */
     app.patch(
       "/reviews/:reviewId",
@@ -157,7 +158,10 @@ async function run() {
           const reviewId = req.params.reviewId;
           console.log(data);
           // to find the target review
-          const filter = { _id: ObjectId(reviewId) };
+          const filter = {
+            _id: ObjectId(reviewId),
+            userEmail: req.query.email,
+          };
           const updateData = {
             $set: {
               review: data.review,
