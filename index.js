@@ -142,7 +142,36 @@ async function run() {
       }
     });
 
-    /* ================================== */
+    /* ================Edit a review================== */
+    /**
+     * Find the review
+     * If review exist set the updated data
+     */
+    app.patch(
+      "/reviews/:reviewId",
+      verifyJwtToken,
+      verifyEmail,
+      async (req, res) => {
+        try {
+          const data = req.body;
+          const reviewId = req.params.reviewId;
+          console.log(data);
+          // to find the target review
+          const filter = { _id: ObjectId(reviewId) };
+          const updateData = {
+            $set: {
+              review: data.review,
+              ratings: data.ratings,
+            },
+          };
+
+          const result = await reviewsCollection.updateOne(filter, updateData);
+          res.json(result);
+        } catch (err) {
+          res.status(400).json("Server Error");
+        }
+      }
+    );
 
     /* ================================== */
 
