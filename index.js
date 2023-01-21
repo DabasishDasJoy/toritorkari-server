@@ -173,7 +173,22 @@ async function run() {
       }
     );
 
-    /* ================================== */
+    /* ===============Delete a Review=================== */
+    app.delete(
+      "/reviews/:reviewId",
+      verifyJwtToken,
+      verifyEmail,
+      async (req, res) => {
+        try {
+          const query = { _id: ObjectId(req.params.reviewId) };
+
+          const result = await reviewsCollection.deleteOne(query);
+          res.json(result);
+        } catch (error) {
+          res.status(400).json("Server Error");
+        }
+      }
+    );
 
     /* ================================== */
 
