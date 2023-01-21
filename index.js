@@ -44,6 +44,7 @@ async function run() {
     const usersCollections = db.collection("users");
     const categoriesCollections = db.collection("categories");
     const productsCollection = db.collection("products");
+    const reviewsCollection = db.collection("reviews");
 
     /* ************** APIs ********************* */
     /* ================Crete User================== */
@@ -91,20 +92,6 @@ async function run() {
       res.json(categories);
     });
     /* ==============Get Products from specic Category==================== */
-    /**
-     * Get the category id
-     * Filter all the products having the same category name
-     * Return the result
-     */
-    // app.get("/category/:name", async (req, res) => {
-    //   const name = req.params.name;
-
-    //   // Flter query
-    //   const query = { category: name };
-    //   const result = await productsCollection.find(query).toArray();
-
-    //   res.json(result);
-    // });
     app.get("/category/:id", async (req, res) => {
       const id = req.params.id;
       const categoryQuery = { _id: ObjectId(id) };
@@ -118,7 +105,6 @@ async function run() {
     });
 
     /* ===============Get A product=================== */
-
     app.get("/product/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -128,9 +114,31 @@ async function run() {
       res.json(result);
     });
 
-    /* ================================== */
+    /* ================Get A product review================== */
+    app.get("/reviews/:productId", async (req, res) => {
+      // Get the prouduct id
+      try {
+        const id = req.params.productId;
+        const query = { productId: id };
 
-    /* ================================== */
+        const result = await reviewsCollection.find(query).toArray();
+
+        res.json({ result });
+      } catch (error) {
+        res.status(400).json("Server Error");
+      }
+    });
+
+    /* ================Create a review================== */
+    app.post("/reviews", async (req, res) => {
+      try {
+        const data = req.body;
+        const result = await reviewsCollection.insertOne(data);
+        res.json(result);
+      } catch (error) {
+        res.status(400).json("Server Error");
+      }
+    });
 
     /* ================================== */
 
