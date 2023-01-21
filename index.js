@@ -2,6 +2,8 @@ const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const verifyJwtToken = require("./middleware/verifyJwtToken");
+const verifyEmail = require("./middleware/verifyEmail");
 require("dotenv").config();
 const app = express();
 
@@ -123,14 +125,14 @@ async function run() {
 
         const result = await reviewsCollection.find(query).toArray();
 
-        res.json({ result });
+        res.json(result);
       } catch (error) {
         res.status(400).json("Server Error");
       }
     });
 
     /* ================Create a review================== */
-    app.post("/reviews", async (req, res) => {
+    app.post("/reviews", verifyJwtToken, verifyEmail, async (req, res) => {
       try {
         const data = req.body;
         const result = await reviewsCollection.insertOne(data);
