@@ -184,7 +184,10 @@ async function run() {
       verifyEmail,
       async (req, res) => {
         try {
-          const query = { _id: ObjectId(req.params.reviewId) };
+          const query = {
+            _id: ObjectId(req.params.reviewId),
+            userEmail: req.query.email,
+          };
 
           const result = await reviewsCollection.deleteOne(query);
           res.json(result);
