@@ -6,6 +6,7 @@ const verifyJwtToken = require("./middleware/verifyJwtToken");
 const verifyEmail = require("./middleware/verifyEmail");
 require("dotenv").config();
 const app = express();
+const stripe = require("stripe")(process.env.Stripe_Secret_Key);
 
 const port = process.env.PORT || 5000;
 
@@ -156,7 +157,6 @@ async function run() {
         try {
           const data = req.body;
           const reviewId = req.params.reviewId;
-          console.log(data);
           // to find the target review
           const filter = {
             _id: ObjectId(reviewId),
@@ -197,9 +197,57 @@ async function run() {
       }
     );
 
-    /* ================================== */
+    /* ===============Get shopping cart items=================== */
+    /**
+     * Get the cart id's from body
+     * Find the proudcts that mathces up those ids
+     * return the result array
+     * */
 
-    /* ================================== */
+    app.post("/shopping-cart", async (req, res) => {
+      try {
+        const cartItems = req.body;
+        const cart = [];
+        for (id in cartItems) {
+          const query = { _id: ObjectId(id) };
+
+          const item = await productsCollection.findOne(query);
+          cart.push(item);
+        }
+
+        res.json(cart);
+      } catch (err) {
+        console.log(err);
+        res.status(400).json("Server Error");
+      }
+    });
+
+    /* ================Create Payment================== */
+    app.post(
+      "/create-payment-intent",
+      verifyJwtToken,
+      verifyEmail,
+      async (req, res) => {
+        try {
+          const { grandTotal } = req.body;
+          const amount = grandTotal * 100;
+
+          // Create a PaymentIntent with the order amount and currency
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: "usd",
+            automatic_payment_methods: {
+              enabled: true,
+            },
+          });
+          res.json({
+            clientSecret: paymentIntent.client_secret,
+          });
+        } catch (error) {
+          res.status(400).json("Server Error");
+        }
+      }
+    );
 
     /* ================================== */
 
