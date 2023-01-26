@@ -48,6 +48,7 @@ async function run() {
     const categoriesCollections = db.collection("categories");
     const productsCollection = db.collection("products");
     const reviewsCollection = db.collection("reviews");
+    const invoicesCollection = db.collection("invoices");
 
     /* ************** APIs ********************* */
     /* ================Crete User================== */
@@ -249,6 +250,37 @@ async function run() {
       }
     );
 
+    /* ================ Place Payment Details/order ================== */
+    app.post("/invoices", verifyJwtToken, verifyEmail, async (req, res) => {
+      try {
+        const { orderDetails } = req.body;
+
+        const result = await invoicesCollection.insertOne(orderDetails);
+        res.json(result);
+      } catch (err) {
+        res.status(400).json("Server Error");
+      }
+    });
+
+    /* =================Get A invoice=================== */
+    app.get("/invoices/:uid", verifyJwtToken, verifyEmail, async (req, res) => {
+      try {
+        const query = { invoiceId: req.params.uid };
+
+        const result = await invoicesCollection.findOne(query);
+
+        res.json(result);
+      } catch (error) {
+        res.status(400).json("Server Error");
+      }
+    });
+
+    /* ================Get All the invoices of a user================== */
+
+    /* ================================== */
+    /* ================================== */
+
+    /* ================================== */
     /* ================================== */
 
     /* ================================== */
