@@ -98,15 +98,34 @@ async function run() {
     });
     /* ==============Get Products from specic Category==================== */
     app.get("/category/:id", async (req, res) => {
-      const id = req.params.id;
-      const categoryQuery = { _id: ObjectId(id) };
-      const category = await categoriesCollections.findOne(categoryQuery);
-      const { categoryName } = category;
-      // Flter query
-      const query = { category: categoryName };
-      const result = await productsCollection.find(query).toArray();
+      try {
+        const id = req.params.id;
+        const categoryQuery = { _id: ObjectId(id) };
+        const category = await categoriesCollections.findOne(categoryQuery);
+        const { categoryName } = category;
+        // Flter query
 
-      res.json(result);
+        const subCat = req.query.subCat;
+
+        let query;
+        if (subCat === "All") {
+          query = {
+            category: categoryName,
+          };
+        } else {
+          query = {
+            category: categoryName,
+            subCategory: req.query.subCat,
+          };
+        }
+
+        const result = await productsCollection.find(query).toArray();
+
+        res.json(result);
+      } catch (err) {
+        console.log(err);
+        res.status(400).json("Server Error");
+      }
     });
 
     /* ===============Get A product=================== */
