@@ -299,6 +299,7 @@ async function run() {
           .find({
             discount: { $exists: true },
           })
+          .limit(12)
           .toArray();
 
         res.json(result);
@@ -307,7 +308,32 @@ async function run() {
       }
     });
 
-    /* ================================== */
+    /* ============== Check Coupon Velidity==================== */
+    app.post("/offers", verifyJwtToken, verifyEmail, async (req, res) => {
+      try {
+        const query = { coupon: req.body.coupon };
+        const coupon = await offersCollection.findOne(query);
+
+        if (coupon) {
+          /**
+           * Chekck if coupon code is expired or not
+           */
+          if (new Date(coupon.expiresIn).getTime() > new Date().getTime()) {
+            return res.json({
+              message: "Valid",
+              discount: coupon.discount,
+              leastAmount: coupon.leastAmount,
+            });
+          } else {
+            return res.json({ message: "Expired" });
+          }
+        } else {
+          return res.json({ message: "Invalid" });
+        }
+      } catch (err) {
+        res.status(400).json("Server Error");
+      }
+    });
     /* ================================== */
 
     /* ================================== */
