@@ -49,6 +49,7 @@ async function run() {
     const productsCollection = db.collection("products");
     const reviewsCollection = db.collection("reviews");
     const invoicesCollection = db.collection("invoices");
+    const offersCollection = db.collection("offers");
 
     /* ************** APIs ********************* */
     /* ================Crete User================== */
@@ -277,8 +278,34 @@ async function run() {
 
     /* ================Get All the invoices of a user================== */
 
-    /* ================================== */
-    /* ================================== */
+    /* =============== Get All the offers=================== */
+    app.get("/offers", async (req, res) => {
+      try {
+        const size = req.query.size;
+
+        const result = await offersCollection
+          .find()
+          .limit(parseInt(size))
+          .toArray();
+        res.json(result);
+      } catch (error) {
+        res.status(400).json("Server Error");
+      }
+    });
+    /* =============== Get latest Discounted products================= */
+    app.get("/discounts", async (req, res) => {
+      try {
+        const result = await productsCollection
+          .find({
+            discount: { $exists: true },
+          })
+          .toArray();
+
+        res.json(result);
+      } catch (err) {
+        res.status(400).json("Server Error");
+      }
+    });
 
     /* ================================== */
     /* ================================== */
