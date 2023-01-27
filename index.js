@@ -106,6 +106,7 @@ async function run() {
         // Flter query
 
         const subCat = req.query.subCat;
+        const sort = req.query.sort;
 
         let query;
         if (subCat === "All") {
@@ -118,8 +119,18 @@ async function run() {
             subCategory: req.query.subCat,
           };
         }
+        let options = {};
+        if (sort === "ascending") {
+          options = {
+            sort: { price: 1 },
+          };
+        } else if (sort === "descending") {
+          options = {
+            sort: { price: -1 },
+          };
+        }
 
-        const result = await productsCollection.find(query).toArray();
+        const result = await productsCollection.find(query, options).toArray();
 
         res.json(result);
       } catch (err) {
