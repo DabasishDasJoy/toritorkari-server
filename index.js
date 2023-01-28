@@ -173,9 +173,15 @@ async function run() {
           };
         }
 
-        const result = await productsCollection.find(query, options).toArray();
+        const data = await productsCollection.find(query, options).toArray();
+        const dataCount = data.length;
+        const result = await productsCollection
+          .find(query, options)
+          .skip(parseInt(req.query.page) * parseInt(req.query.size))
+          .limit(parseInt(req.query.size))
+          .toArray();
 
-        res.json(result);
+        res.json({ result, dataCount });
       } catch (err) {
         console.log(err);
         res.status(400).json("Server Error");
@@ -189,9 +195,27 @@ async function run() {
         tags: { $regex: req.query.query, $options: "i" },
       };
 
-      const result = await productsCollection.find(query).toArray();
+      const sort = req.query.sort;
+      let options = {};
+      if (sort === "ascending") {
+        options = {
+          sort: { price: 1 },
+        };
+      } else if (sort === "descending") {
+        options = {
+          sort: { price: -1 },
+        };
+      }
 
-      res.json(result);
+      const data = await productsCollection.find(query, options).toArray();
+      const dataCount = data.length;
+      const result = await productsCollection
+        .find(query, options)
+        .skip(parseInt(req.query.page) * parseInt(req.query.size))
+        .limit(parseInt(req.query.size))
+        .toArray();
+
+      res.json({ result, dataCount });
     });
 
     /* ===============Get A product=================== */
