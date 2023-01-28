@@ -70,14 +70,18 @@ async function run() {
         })
         .toArray();
 
-      // Calculate total reviews
-      const totalRatings = targetProductReviews.reduce(
-        (prev, curr) => prev + parseFloat(curr.ratings),
-        0
-      );
+      let average = "0";
 
-      // calculate avg
-      const average = (totalRatings / targetProductReviews.length).toFixed(2);
+      if (targetProductReviews.length) {
+        const totalRatings = targetProductReviews.reduce(
+          (prev, curr) => prev + parseFloat(curr.ratings),
+          0
+        );
+
+        // calculate avg
+        average = (totalRatings / targetProductReviews.length).toFixed(2);
+      }
+      // Calculate total reviews
 
       // Update in the product
 
@@ -270,8 +274,21 @@ async function run() {
             _id: ObjectId(req.params.reviewId),
             userEmail: req.query.email,
           };
+          /**
+           * Fetch review
+           * Then delete
+           * Then update
+           * */
+
+          const review = await reviewsCollection.findOne({
+            _id: ObjectId(req.params.reviewId),
+          });
 
           const result = await reviewsCollection.deleteOne(query);
+
+          // Update average
+          updateAverageRatings(review);
+
           res.json(result);
         } catch (error) {
           res.status(400).json("Server Error");
