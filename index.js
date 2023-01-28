@@ -169,8 +169,41 @@ async function run() {
       try {
         const data = req.body;
         const result = await reviewsCollection.insertOne(data);
+        /**
+         * Get the product id
+         * Fetch all reviews
+         * Calculate total review
+         * Averaage = total reviews/ number of reviews
+         * Get the product from product collection
+         * Update the review or upsert it with the avarage calculated
+         */
+
+        const targetProductReviews = await reviewsCollection
+          .find({
+            productId: data.productId,
+          })
+          .toArray();
+
+        // Calculate total reviews
+        const totalRatings = targetProductReviews.reduce(
+          (prev, curr) => prev + parseFloat(curr.ratings),
+          0
+        );
+
+        // calculate avg
+        const average = (totalRatings / targetProductReviews.length).toFixed(2);
+
+        // Update in the product
+
+        productsCollection.updateOne(
+          { _id: ObjectId(data.productId) },
+          { $set: { ratings: average } },
+          { upsert: true }
+        );
+
         res.json(result);
       } catch (error) {
+        console.log(error);
         res.status(400).json("Server Error");
       }
     });
