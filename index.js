@@ -145,18 +145,21 @@ async function run() {
         const { categoryName } = category;
         // Flter query
 
-        const subCat = req.query.subCat;
+        const subCat = req.query.subcategory;
         const sort = req.query.sort;
 
         let query;
-        if (subCat === "All") {
+        if (subCat === "all") {
           query = {
             category: categoryName,
           };
         } else {
           query = {
             category: categoryName,
-            subCategory: req.query.subCat,
+            subCategory: {
+              $regex: "^" + req.query.subcategory + "$",
+              $options: "i",
+            },
           };
         }
         let options = {};
