@@ -182,6 +182,18 @@ async function run() {
       }
     });
 
+    /* ===============Get Search Results=================== */
+    app.get("/search", async (req, res) => {
+      const query = {
+        // Regex in field to ignore case
+        tags: { $regex: req.query.query, $options: "i" },
+      };
+
+      const result = await productsCollection.find(query).toArray();
+
+      res.json(result);
+    });
+
     /* ===============Get A product=================== */
     app.get("/product/:id", async (req, res) => {
       const id = req.params.id;
