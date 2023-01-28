@@ -52,6 +52,42 @@ async function run() {
     const offersCollection = db.collection("offers");
 
     /* ************** APIs ********************* */
+
+    /*====================Utils========================= */
+    const updateAverageRatings = async (data) => {
+      /**
+       * Get the product id
+       * Fetch all reviews
+       * Calculate total review
+       * Averaage = total reviews/ number of reviews
+       * Get the product from product collection
+       * Update the review or upsert it with the avarage calculated
+       */
+
+      const targetProductReviews = await reviewsCollection
+        .find({
+          productId: data.productId,
+        })
+        .toArray();
+
+      // Calculate total reviews
+      const totalRatings = targetProductReviews.reduce(
+        (prev, curr) => prev + parseFloat(curr.ratings),
+        0
+      );
+
+      // calculate avg
+      const average = (totalRatings / targetProductReviews.length).toFixed(2);
+
+      // Update in the product
+
+      productsCollection.updateOne(
+        { _id: ObjectId(data.productId) },
+        { $set: { ratings: average } },
+        { upsert: true }
+      );
+    };
+
     /* ================Crete User================== */
     // Create user
     app.post("/users", async (req, res) => {
@@ -169,38 +205,8 @@ async function run() {
       try {
         const data = req.body;
         const result = await reviewsCollection.insertOne(data);
-        /**
-         * Get the product id
-         * Fetch all reviews
-         * Calculate total review
-         * Averaage = total reviews/ number of reviews
-         * Get the product from product collection
-         * Update the review or upsert it with the avarage calculated
-         */
-
-        const targetProductReviews = await reviewsCollection
-          .find({
-            productId: data.productId,
-          })
-          .toArray();
-
-        // Calculate total reviews
-        const totalRatings = targetProductReviews.reduce(
-          (prev, curr) => prev + parseFloat(curr.ratings),
-          0
-        );
-
-        // calculate avg
-        const average = (totalRatings / targetProductReviews.length).toFixed(2);
-
-        // Update in the product
-
-        productsCollection.updateOne(
-          { _id: ObjectId(data.productId) },
-          { $set: { ratings: average } },
-          { upsert: true }
-        );
-
+        // Update Average
+        updateAverageRatings(data);
         res.json(result);
       } catch (error) {
         console.log(error);
@@ -227,14 +233,25 @@ async function run() {
             _id: ObjectId(reviewId),
             userEmail: req.query.email,
           };
+
+          // Updated data
           const updateData = {
             $set: {
               review: data.review,
               ratings: data.ratings,
             },
           };
-
+          // update
           const result = await reviewsCollection.updateOne(filter, updateData);
+
+          // Update average
+          // Fetch the review
+          const review = await reviewsCollection.findOne({
+            _id: ObjectId(reviewId),
+          });
+          // Send that review as data
+          updateAverageRatings(review);
+
           res.json(result);
         } catch (err) {
           res.status(400).json("Server Error");
