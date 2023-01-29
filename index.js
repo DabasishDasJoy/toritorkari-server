@@ -413,6 +413,19 @@ async function run() {
     });
 
     /* ================Get All the invoices of a user================== */
+    app.get("/invoices", verifyJwtToken, verifyEmail, async (req, res) => {
+      try {
+        const result = await invoicesCollection
+          .find({ email: req.query.email })
+          .skip(parseInt(req.query.page) * parseInt(req.query.size))
+          .limit(parseInt(req.query.size))
+          .toArray();
+
+        res.json(result);
+      } catch (err) {
+        res.status(400).json("Server Error");
+      }
+    });
 
     /* =============== Get All the offers=================== */
     app.get("/offers", async (req, res) => {
