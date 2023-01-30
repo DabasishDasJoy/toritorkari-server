@@ -92,6 +92,30 @@ async function run() {
       );
     };
 
+    const updatePurchase = (orderDetails) => {
+      orderDetails.cart.map(async (item) => {
+        const { purchases } = await productsCollection.findOne({
+          _id: ObjectId(item.productId),
+        });
+
+        const newPurchase = purchases
+          ? parseInt(purchases) + parseInt(item.quantity)
+          : 0 + parseInt(item.quantity);
+
+        productsCollection.updateOne(
+          { _id: ObjectId(item.productId) },
+          {
+            $set: {
+              purchases: newPurchase,
+            },
+          },
+          {
+            upsert: true,
+          }
+        );
+      });
+    };
+
     /* ================Crete User================== */
     // Create user
     app.post("/users", async (req, res) => {
@@ -393,11 +417,49 @@ async function run() {
         const { orderDetails } = req.body;
 
         const result = await invoicesCollection.insertOne(orderDetails);
+
+        // Update purchase
+        updatePurchase(orderDetails);
+
         res.json(result);
       } catch (err) {
         res.status(400).json("Server Error");
       }
     });
+
+    // app.post("/invoices/v2", verifyJwtToken, verifyEmail, async (req, res) => {
+    //   try {
+    //     const { orderDetails } = req.body;
+    //     // const result = await invoicesCollection.insertOne(orderDetails);
+
+    //     // Update purchase
+    //     orderDetails.cart.map(async (item) => {
+    //       const { purchases } = await productsCollection.findOne({
+    //         _id: ObjectId(item.productId),
+    //       });
+
+    //       const newPurchase = purchases
+    //         ? parseInt(purchases) + parseInt(item.quantity)
+    //         : 0 + parseInt(item.quantity);
+
+    //       productsCollection.updateOne(
+    //         { _id: ObjectId(item.productId) },
+    //         {
+    //           $set: {
+    //             purchases: newPurchase,
+    //           },
+    //         },
+    //         {
+    //           upsert: true,
+    //         }
+    //       );
+    //     });
+
+    //     // res.json(result);
+    //   } catch (err) {
+    //     res.status(400).json("Server Error");
+    //   }
+    // });
 
     /* =================Get A invoice=================== */
     app.get("/invoices/:uid", verifyJwtToken, verifyEmail, async (req, res) => {
