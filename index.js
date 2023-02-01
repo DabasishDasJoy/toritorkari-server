@@ -106,7 +106,7 @@ async function run() {
           { _id: ObjectId(item.productId) },
           {
             $set: {
-              purchases: newPurchase,
+              purchases: `${newPurchase}`,
             },
           },
           {
@@ -216,7 +216,12 @@ async function run() {
     app.get("/search", async (req, res) => {
       const query = {
         // Regex in field to ignore case
-        tags: { $regex: req.query.query, $options: "i" },
+        $or: [
+          { tags: { $regex: req.query.query, $options: "i" } },
+          { category: { $regex: "^" + req.query.query + "$", $options: "i" } },
+          { subCategory: { $regex: req.query.query, $options: "i" } },
+          { name: { $regex: req.query.query, $options: "i" } },
+        ],
       };
 
       const sort = req.query.sort;
@@ -545,6 +550,25 @@ async function run() {
         res.status(400).json("Server Error");
       }
     });
+
+    /* ===============Get Popular products =================== */
+    app.get("/products/popular", async (req, res) => {
+      try {
+        const result = await productsCollection
+          .find({ purchases: { $exists: true } }, { sort: { purchases: -1 } })
+          .limit(12)
+          .toArray();
+
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(400).json("Server Error");
+      }
+    });
+    /* ================================== */
+    /* ================================== */
+    /* ================================== */
+    /* ================================== */
     /* ================================== */
 
     /* ================================== */
