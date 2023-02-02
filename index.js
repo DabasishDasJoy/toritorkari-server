@@ -106,7 +106,7 @@ async function run() {
           { _id: ObjectId(item.productId) },
           {
             $set: {
-              purchases: `${newPurchase}`,
+              purchases: newPurchase,
             },
           },
           {
