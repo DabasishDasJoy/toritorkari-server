@@ -175,7 +175,7 @@ async function run() {
         let query;
         if (subCat === "all") {
           query = {
-            category: categoryName,
+            category: { $regex: "^" + categoryName + "$", $options: "i" },
           };
         } else {
           query = {
